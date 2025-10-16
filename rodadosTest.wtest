@@ -1,0 +1,106 @@
+import rodados.*
+
+describe "Test rodados etapa I" {
+    const deportes = new Dependencia(empleados = 45)
+    const cultura = new Dependencia(empleados = 31)
+    const cachito = new Corsa(color = "Rojo")
+    method initialize() {
+       deportes.agregarAFlota(cachito)
+       deportes.agregarAFlota(new Corsa(color = "Azul"))
+       deportes.agregarAFlota(new Corsa(color = "Verde"))
+       deportes.agregarAFlota(new Kwid(tieneGasAdicional = true))
+       deportes.agregarAFlota(new Especial(capacidad = 5, velocidad = 160, peso = 1200, color = "Beige"))
+       cultura.agregarAFlota(cachito)
+       cultura.agregarAFlota(new Kwid(tieneGasAdicional = true))
+       cultura.agregarAFlota(new Kwid(tieneGasAdicional = true))
+       cultura.agregarAFlota(new Kwid(tieneGasAdicional = false))
+       trafic.cambiarInterior(popular)
+       trafic.cambiarMotor(bataton)
+       cultura.agregarAFlota(trafic)
+    }
+    test "Peso total de la flota de deportes y cultura" {
+        assert.equals(6450, deportes.pesoTotalFlota())
+        assert.equals(10700, cultura.pesoTotalFlota())
+    }
+    test "Está bien equipada deportes; cultura no" {
+        assert.that(deportes.estaBienEquipada())
+        assert.notThat(cultura.estaBienEquipada())
+    }
+    test "La capacidad total en color azul de deportes y cultura" {
+        assert.equals(7, deportes.capacidadTotalEnColor("Azul"))
+        assert.equals(10, cultura.capacidadTotalEnColor("Azul"))
+    }
+    test "El color del rodado más rápido en deportes y cultura" {
+        assert.equals("Beige", deportes.colorDelRodadoMasRapido())
+        assert.equals("Rojo", cultura.colorDelRodadoMasRapido())
+    }
+    test "Es grande deportes; cultura no" {
+        assert.that(deportes.esGrande())
+        assert.notThat(cultura.esGrande())
+    }
+    test "La capacidad faltante de deportes y cultura" {
+        assert.equals(25, deportes.capacidadFaltante())
+        assert.equals(5, cultura.capacidadFaltante())
+    }
+}
+
+describe "Test rodados etapa II" {
+    const cachito = new Corsa(color = "Rojo")
+    test "El auto puede satisfacer el pedido" {
+        const pedido1 = new Pedido(tiempo = 8, distancia = 960, pasajeros = 4, coloresIncompatibles = #{"Azul", "Negro"})
+        assert.that(pedido1.autoSatisfaceUnPedido(cachito))
+    }
+    test "Ahora en colores incompatibles está el rojo, por lo que el auto no satisface el pedido" {
+        const pedido1 = new Pedido(tiempo = 8, distancia = 960, pasajeros = 4, coloresIncompatibles = #{"Azul", "Negro", "Rojo"})
+        assert.notThat(pedido1.autoSatisfaceUnPedido(cachito))
+    }
+    test "Ahora el tiempo máximo es de 6 horas, por lo que el auto no satisface el pedido" {
+        const pedido1 = new Pedido(tiempo = 6, distancia = 960, pasajeros = 4, coloresIncompatibles = #{"Azul", "Negro"})
+        assert.notThat(pedido1.autoSatisfaceUnPedido(cachito))
+    }
+    test "Si el pedido acelera, ahora el auto podría satisfacer el pedido (incia con 8hs)" {
+        const pedido1 = new Pedido(tiempo = 8, distancia = 960, pasajeros = 4, coloresIncompatibles = #{"Azul", "Negro"})
+        pedido1.acelerar()
+        assert.that(pedido1.autoSatisfaceUnPedido(cachito))
+    }
+    test "Si el pedido se relaja, ahora el auto podría satisfacer el pedido (inicia con 6hs)" {
+        const pedido1 = new Pedido(tiempo = 6, distancia = 960, pasajeros = 4, coloresIncompatibles = #{"Azul", "Negro"})
+        pedido1.relajar()
+        assert.that(pedido1.autoSatisfaceUnPedido(cachito))
+    }
+}
+
+describe "Test rodados etapa III" {
+    const dependencia1 = new Dependencia(empleados = 45)
+    const pedido1 = new Pedido(tiempo = 6, distancia = 960, pasajeros = 4, coloresIncompatibles = #{"Azul", "Negro"})
+    const pedido2 = new Pedido(tiempo = 8, distancia = 600, pasajeros = 3, coloresIncompatibles = #{"Rojo", "Negro"})
+    const pedido3 = new Pedido(tiempo = 9, distancia = 580, pasajeros = 2, coloresIncompatibles = #{"Negro"})
+    method initialize() {
+        dependencia1.agregarPedido(pedido1)
+        dependencia1.agregarPedido(pedido2)
+        dependencia1.agregarPedido(pedido3)
+        dependencia1.agregarAFlota(new Kwid(tieneGasAdicional = true))
+        dependencia1.agregarAFlota(new Kwid(tieneGasAdicional = false))
+        dependencia1.agregarAFlota(new Corsa(color = "Negro"))
+        dependencia1.agregarAFlota(trafic)
+    }
+    test "Total de pasajeros que tiene registrados" {
+        assert.equals(9, dependencia1.totalDePasajerosDePedidos())
+    }
+    test "Pedidos registrados que no pueden ser satisfechos por ninguno de los rodados" {
+        assert.equals([pedido1], dependencia1.pedidosNoSatisfechos())
+    }
+    test "Todos los pedidos tienen registrado un color como incompatible" {
+        assert.that(dependencia1.todosLosPedidosTienenDeIncompatible("Negro"))
+        assert.notThat(dependencia1.todosLosPedidosTienenDeIncompatible("Azul"))
+    }
+    test "Todos los pedidos se relajaron" {
+        assert.equals(6, pedido1.tiempo())
+        assert.equals(8, pedido2.tiempo())
+        assert.equals(9, pedido3.tiempo())
+        dependencia1.relajarTodosLosPedidos()
+        assert.equals(7, pedido1.tiempo())
+        assert.equals(9, pedido2.tiempo())
+        assert.equals(10, pedido3.tiempo())
+    }
+}
